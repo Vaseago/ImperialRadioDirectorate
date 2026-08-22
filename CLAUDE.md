@@ -1,0 +1,159 @@
+# CLAUDE.md
+
+## What this is
+
+**Imperial Radio Directorate.** A jukebox, built as a deliberate "vanity
+project" (the user's own framing, 2026-08-21) - not filling a functional
+gap the way IID/ISD/ILD do, worth building for its own sake. The 5th app
+in the Imperial suite. Fully independent from its siblings: **zero EVE
+ESI dependency, zero SDE dependency** - a pure local media player,
+themed around EVE, with no EVE Online API dependency at all.
+
+**The creative concept** (confirmed with the user, 2026-08-21): visually
+and sonically, a 1950s American diner-style jukebox reimagined as if
+built by someone in the EVE-future who only knows about "jukeboxes" from
+fragmentary historical records, reconstructing one using their own era's
+alien tech and getting the details charmingly wrong (holographic
+emitters instead of glass tubes, force-field-style buttons, proportions
+that never quite fit a human). The visual design phase (not yet built -
+see "Not yet built" below) applies this to the UI; the music-library
+design already applies it to the AUDIO too - see the next section.
+
+## Legal grounding (read before touching the music library)
+
+This app **never extracts, scrapes, or derives audio from the installed
+EVE Online client** - CCP's Third Party Policies explicitly ban this
+("cache scraping," EULA §9.C), actively enforced with real bans. Full
+research trail: the `imperial-radio-directorate-idea` memory (this
+project's Claude Code memory system), resolved 2026-08-20.
+
+**Safe sources, and why the architecture is generic rather than
+AI-specific**: (a) AI-generated ORIGINAL music (not sampled from
+anything) - the V1 focus, see `docs/AI_MUSIC_PROMPT.md` for a real,
+already-researched generation prompt; (b) the user's own legitimately-
+purchased/owned audio files (e.g. CCP's own official Bandcamp store),
+added via a second folder - NOT built into the default flow yet, but the
+library scanner (`library/scanner.py`) works on ANY folder of audio
+files, so this needs zero redesign later, just pointing
+`config_overrides.json`'s `extra_music_dirs` at a real folder. CD-drive
+ripping was explicitly considered and deferred - see "Deliberately
+deferred" below.
+
+This ties the legal-safety design to the creative concept: the device's
+own music library isn't the real historical soundtrack, it's the
+device's own AI-approximated reconstruction of what "ancient jukebox
+music" might have sounded like from fragmentary records - not a
+coincidence, the same "alien reconstruction" conceit applied to both the
+visuals and the audio.
+
+## Architecture (mirrors IID/ISD/ILD's own pattern, minus everything ESI/SDE)
+
+- **`config.py`** - `MUSIC_LIBRARY_DIR`/`MUSIC_LIBRARY_DIRS`,
+  `WEB_PORT` (8060, next unused slot after IID 8000/8010, ILD 8020/8030,
+  ISD 8040/8050), `DATA_DIR`. **Key decision**: the music library is
+  deliberately NOT `DATA_DIR`-derived - it's read-only, shared
+  identically by the web service and any desktop shell instance, same
+  reasoning as the sibling apps' own `SHARED_SDE_DIR`. Nothing here ever
+  WRITES to the library, so there's no whole-file-save race and no
+  per-client-id credential to isolate - the two real reasons the sibling
+  apps isolate `DATA_DIR` per-instance at all. This means `config.py`'s
+  "get `DATA_DIR` right" surface is much smaller than its siblings' -
+  really just `config_overrides.json`.
+- **`library/models.py`** / **`library/scanner.py`** - pure domain
+  logic, no web/ dependency, mirrors `sde/`/`planner/`/`logistics/`'s
+  separation-of-concerns principle in the sibling apps.
+  `scan_library_dirs()` walks each configured dir, reads tags via
+  `mutagen`, falls back to a cleaned-up filename when tags are missing
+  (the "reconstructed audio, fragmentary records" framing paying off
+  functionally). Track ID = `sha1(relative_path)[:16]` - stable across
+  rescans, changes on rename (documented, accepted simplification). **No
+  database** - `app.state.tracks` populated fresh at lifespan startup
+  and on explicit `POST /api/library/rescan`, matching the sibling
+  apps' "no over-engineered persistence" posture; a personal music
+  library trivially fits in memory.
+- **`web/routers/library.py`** - `GET /api/library/tracks` (list),
+  `GET /api/library/tracks/{id}/stream` (plain `FileResponse` - Range-
+  request support for seeking comes free from Starlette's own
+  implementation, verified directly against the installed version's
+  source, not assumed), `POST /api/library/rescan` (CSRF-guarded via
+  `web/security.py`, same `require_same_origin_header` mechanism as the
+  sibling apps, header renamed `X-IRD-Request`).
+- **`web/server.py`** / **`ird_web_main.py`** - the two gotchas that
+  already bit ISD/ILD for real (see `../CROSS_APP_ISSUES.md`), both
+  avoided from day one here: `sys.frozen`-gated template/static path
+  resolution, and `uvicorn.run(app, ...)` with the real imported object,
+  never the `"web.server:app"` string form.
+- **`desktop_shell/app.py`** - simpler than ISD/ILD's own shells, no ESI
+  client ID/callback to register at all. Own port (8070), own `DATA_DIR`
+  (`Imperial Radio Directorate Desktop`), deliberately does NOT override
+  `MUSIC_LIBRARY_DIR` so it shows the identical library with zero
+  duplication.
+
+## Distribution (confirmed with the user, 2026-08-21)
+
+**Desktop app only for now** - the user's own words: "this will be a
+desktop app only no 'webapp' version, but leave the option open i just
+don't see hosting it on the pi and accessing it from a different device
+at this time." This needed zero special design - `web/server.py` binds
+`0.0.0.0` same as the siblings, so a browser-reachable web server exists
+"for free" the moment `ird_web_main.py` runs; the user just isn't
+building/running an NSSM service or a Pi install path for it. Don't add
+Pi/web-installer packaging work without the user asking first.
+
+## Deliberately deferred (don't build without asking first)
+
+- **CD-drive ripping** - considered and explicitly deferred. The user's
+  own words: "if it can't read from cd. then we skip. most of my music
+  at this point is digital anyhow sitting in a directory on my pc." A
+  real, meaningfully bigger technical lift than file playback (Windows
+  exposes audio CDs as tiny `.cda` placeholder files, not playable audio
+  - a real rip needs digital audio extraction via a dedicated library/
+  tool; browsers have zero access to raw CD drives at all, so it would
+  need native OS-level handling in the desktop shell specifically). Only
+  worth attempting if the user asks, and only if it turns out
+  technically practical.
+- **In-universe "radio news" snippets between tracks** - a real, good
+  idea raised by the user mid-build 2026-08-21 (fits "Radio Directorate"
+  better than pure music), with example snippets already drafted (see
+  the plan file's own dedicated section,
+  `C:\Users\vasea\.claude\plans\mellow-petting-stardust.md`, "Future
+  idea... in-universe radio news snippets"). Explicitly scoped as a
+  LATER phase, after the visual design phase - captured so the idea
+  isn't lost, not a green light to build now.
+
+## Not yet built
+
+- **The alien-retro visual design.** V1's frontend (`web/templates/index.html`,
+  `web/static/css/style.css`, `web/static/js/app.js`) is deliberately
+  bare/functional-first - plain track list, native `<audio controls>`,
+  system font. This was intentional sequencing (backend/playback proven
+  working BEFORE any visual investment), not a placeholder that was
+  forgotten. From-scratch original design (no real reference image to
+  mirror, unlike UI work on the sibling apps that had real screenshots
+  to check against) - show 2-3 early visual directions before committing
+  to one. The native `<audio controls>` bar will need replacing with a
+  custom-skinned transport UI backed by the same `<audio>` element's
+  real events (native controls can't be reskinned consistently
+  cross-browser) - **re-verify seeking still works after reskinning**,
+  exactly the kind of change that can silently break real behavior while
+  looking fine at rest.
+- PWA polish (manifest/icons/service worker) - deferred until there's
+  real iconography to ship, matching the sibling apps' own pattern.
+
+## Verified live, 2026-08-21 (not just "compiles")
+
+Real automated tests actually run (not just written):
+`tests/test_scanner.py` (metadata extraction, filename fallback,
+unsupported-extension skip, track-ID stability/rename behavior, missing-
+dir handling) and `tests/test_library_api.py` (FastAPI TestClient
+against a real isolated library dir - list, full stream, a genuine
+`Range: bytes=0-99` request confirmed returning real `206`/
+`Content-Range`/exact byte count, 404 on unknown track, CSRF guard on
+rescan) - all PASS. Frontend verified live in an actual browser against
+the real running server: loaded a synthetic test track, clicked to play,
+confirmed via direct JS inspection the `<audio>` element was genuinely
+playing (`paused: false`, `readyState: 4`, `currentTime` actively
+advancing), zero console errors. Desktop shell verified live too: the
+spawned web-server subprocess and the `QWebEngineView`'s own real HTTP
+requests (page load, static assets, API call) all confirmed via the
+process's own log output.

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+data/
+data_desktop/
+
+# Audio files are large binaries, never committed - same reasoning as
+# the sibling apps' data/sde.sqlite.
+music_library/*
+!music_library/.gitkeep
+!music_library/README.md

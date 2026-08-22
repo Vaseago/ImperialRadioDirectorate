@@ -1,0 +1,24 @@
+/* Intentionally bare (system font, basic list styling) for V1 -
+   real theming (the "alien reconstruction of a 1950s jukebox" visual
+   design) is deferred to its own later phase, after playback is
+   proven working end to end. See CLAUDE.md. */
+body {
+  font-family: sans-serif;
+  max-width: 640px;
+  margin: 2rem auto;
+}
+#track-list {
+  list-style: none;
+  padding: 0;
+}
+#track-list li {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-bottom: 1px solid #ccc;
+}
+#track-list li:hover {
+  background: #eee;
+}
+#track-list li.playing {
+  font-weight: bold;
+}
