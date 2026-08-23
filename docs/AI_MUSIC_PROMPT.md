@@ -45,6 +45,56 @@ ambient, electronica, space, Tangerine Dream, Vangelis, analog synth, atmospheri
 - If a result leans too melodic or too rhythmic, add `no melody, drone
   only` or `more minimal, less musical` and regenerate.
 
+## Variety pack (added 2026-08-23, for Google Gemini)
+
+A jukebox needs more than one track. These four are mood variants built
+on the same researched foundation as the core prompt above (same
+Tangerine Dream/Vangelis lineage, same no-drums/no-vocals/no-clear-
+melody constraints) - each one just shifts the emotional register to
+cover a different in-game moment. Append the same style tags below to
+any of them if the tool takes separate tags.
+
+### Station Hub / Docked
+
+Ambient electronica, warmer and more settled than deep-space drift, same
+Tangerine Dream/Vangelis lineage. Slow major-leaning synth pads, gentle
+layering, a sense of arrival and safety rather than isolation. Still no
+drums or percussion, no vocals, no clear melody - just a calmer,
+brighter drone atmosphere, like docking somewhere populated after a long
+solo flight.
+
+### Low-Sec Transit
+
+Ambient electronica with a low, tense undercurrent - same evolving
+analog-pad style as Tangerine Dream/Vangelis, but with dissonant,
+unresolved chord tones drifting beneath the warmth. Slow-building unease
+rather than aggression. No drums, no percussion, no vocals. Evokes
+traveling somewhere you're not fully safe - watchful, alert, still calm
+on the surface.
+
+### Wormhole / Unknown Space
+
+Ambient electronica, colder and more alien than the rest - sparse,
+spacious analog synth drones with unusual, unfamiliar harmonic
+intervals. Very slow evolution, long silences between swells. No drums,
+no percussion, no vocals, no recognizable melody. Evokes drifting
+somewhere with no fixed coordinates - disorienting, vast, faintly
+beautiful.
+
+### Homecoming
+
+Ambient electronica, warm and resolving - same Tangerine Dream/Vangelis-
+style evolving analog pads, but trending toward consonance and gentle
+major-key warmth as the track progresses. No drums, no percussion, no
+vocals, no strong melody - just a slow emotional arc from distant to
+warm, like returning somewhere familiar after a long time away.
+
+### Shared style tags (all five prompts, including the core one above)
+
+```
+ambient, electronica, space, Tangerine Dream, Vangelis, analog synth, atmospheric, evolving, no vocals, no percussion, no drums
+```
+
 ## Sources
 
 - [Jukebox Heroes: EVE Online's soundtrack - Engadget](https://www.engadget.com/2013-05-28-jukebox-heroes-eve-onlines-soundtrack.html)
