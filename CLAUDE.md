@@ -157,3 +157,36 @@ advancing), zero console errors. Desktop shell verified live too: the
 spawned web-server subprocess and the `QWebEngineView`'s own real HTTP
 requests (page load, static assets, API call) all confirmed via the
 process's own log output.
+
+## .mp4 support (added 2026-08-23) + real files verified live
+
+`config.SUPPORTED_AUDIO_EXTENSIONS` gained `.mp4` after the user's
+actual first batch of AI-generated tracks turned out to be plain `.mp4`
+files - the exact same MP4 container `.m4a` already reads via mutagen's
+`EasyMP4` class, so the scanner needed zero new parsing logic, just the
+extension added. **Verified directly, not assumed, that these real
+files carry an actual H.264 video track alongside the AAC audio** (raw
+byte-scan for `vide`/`soun` handler atoms, not just a cover-art image) -
+so `web/routers/library.py` gained an explicit `.mp4 -> audio/mp4` MIME
+override (`_MIME_TYPE_OVERRIDES`), since Python's stdlib `mimetypes`
+guesses `video/mp4` for this extension, which is wrong for a track meant
+to play via an `<audio>` element.
+
+**The user's own first 5 real tracks were then converted to `.m4a`
+anyway** (their own call, given the choice) - stripped of the
+unnecessary video track via a portable `imageio-ffmpeg` binary
+(`-vn -c:a copy`, a lossless remux, no re-encoding since the audio codec
+was already AAC), shrinking the library from ~15MB to ~4.5MB with zero
+quality loss and all tags/duration preserved exactly. The `.mp4` support
+itself was kept rather than reverted - it's real, tested, and covers any
+FUTURE similarly-exported file dropped in without conversion, at zero
+ongoing cost.
+
+Verified live end-to-end against the user's real files (not synthetic
+fixtures) via the root-level `ird-test` launch config
+(`../.claude/launch.json`, port 18060): `GET /api/library/tracks` lists
+all 11 real tracks (5 music + 6 ElevenLabs voice-over test clips),
+playback of a real converted `.m4a` track confirmed genuinely playing
+(`paused: false`, `readyState: 4`, `currentTime` advancing, correct
+30.77s duration), and a real `Range: bytes=0-999` request against it
+returned `206`/`Content-Type: audio/mp4`/correct `Content-Range`.

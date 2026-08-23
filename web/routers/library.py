@@ -11,6 +11,7 @@ parsing is needed here.
 """
 
 import mimetypes
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -20,6 +21,18 @@ from library.scanner import scan_library_dirs
 from web.security import require_same_origin_header
 
 router = APIRouter(prefix="/api/library")
+
+# .mp4 override, added 2026-08-23 alongside config.SUPPORTED_AUDIO_EXTENSIONS
+# gaining .mp4 - Python's stdlib mimetypes module guesses "video/mp4" for
+# this extension (verified directly), which is wrong for the real files
+# this needs to serve: AI-generated tracks (the user's own real case)
+# that are audio-only in intent but actually carry BOTH an H.264 video
+# track and an AAC audio track in the container (confirmed by scanning
+# the raw file for 'vide'/'soun' handler atoms - not just a cover-art
+# image). An <audio> element still plays these fine either way (it
+# decodes whichever track it needs, ignoring video), but the Content-Type
+# header should still honestly say "audio", not "video".
+_MIME_TYPE_OVERRIDES = {".mp4": "audio/mp4"}
 
 
 def _track_sort_key(track):
@@ -47,7 +60,8 @@ async def stream_track(track_id: str, request: Request):
     if track is None:
         raise HTTPException(status_code=404, detail="Track not found")
 
-    media_type = mimetypes.guess_type(track.path)[0] or "audio/mpeg"
+    ext = os.path.splitext(track.path)[1].lower()
+    media_type = _MIME_TYPE_OVERRIDES.get(ext) or mimetypes.guess_type(track.path)[0] or "audio/mpeg"
     return FileResponse(track.path, media_type=media_type)
 
 

@@ -13,6 +13,7 @@ import struct
 import tempfile
 import wave
 
+import config
 from library.scanner import scan_library_dirs
 
 
@@ -84,6 +85,23 @@ def check_missing_library_dir_is_skipped_not_an_error():
     print("PASS: a nonexistent library directory is silently skipped, not an error.")
 
 
+def check_mp4_is_a_supported_extension():
+    # Added 2026-08-23: several AI music generators (the user's own real
+    # case) export audio-only-in-intent tracks as plain .mp4 rather than
+    # .m4a, even though it's the exact same MP4 container mutagen already
+    # reads for .m4a via EasyMP4. No pure-stdlib way exists to synthesize
+    # a genuinely decodable MP4 (no ffmpeg on this machine, unlike the
+    # _write_silent_wav() helper above for .wav) - this was instead
+    # verified live against the user's real generated files (5 real
+    # tracks, correct titles/albums/durations all read back correctly,
+    # duration ~28-31s each) rather than a synthetic fixture here. This
+    # check locks down the one thing a unit test CAN verify without a
+    # real file: the extension itself is actually in the supported set,
+    # so a future edit can't silently drop it again.
+    assert ".mp4" in config.SUPPORTED_AUDIO_EXTENSIONS, "FAIL: .mp4 must stay a supported audio extension"
+    print("PASS: .mp4 is a supported audio extension.")
+
+
 def main():
     print("=== Check 1: metadata extraction + filename fallback + unsupported-extension skip ===")
     check_scan_extracts_metadata_and_falls_back_correctly()
@@ -93,6 +111,9 @@ def main():
 
     print("\n=== Check 3: a missing library directory is skipped, not an error ===")
     check_missing_library_dir_is_skipped_not_an_error()
+
+    print("\n=== Check 4: .mp4 stays a supported extension ===")
+    check_mp4_is_a_supported_extension()
 
     print("\nALL SCANNER CHECKS PASSED.")
 

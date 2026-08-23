@@ -82,9 +82,31 @@ def check_list_and_stream_and_range_and_rescan():
         shutil.rmtree(isolated_tmp, ignore_errors=True)
 
 
+def check_mp4_streams_with_an_audio_mime_type():
+    # Added 2026-08-23 alongside config.SUPPORTED_AUDIO_EXTENSIONS gaining
+    # .mp4: Python's stdlib mimetypes module guesses "video/mp4" for this
+    # extension (verified directly), which is wrong for the real files
+    # this needs to serve - AI-generated tracks that carry both an H.264
+    # video track and an AAC audio track in the container, but are
+    # audio-only in intent (played via an <audio> element). No pure-
+    # stdlib way to synthesize a genuinely decodable .mp4 exists here (no
+    # ffmpeg on this machine), so this checks the override table directly
+    # rather than a full stream round-trip.
+    from web.routers.library import _MIME_TYPE_OVERRIDES
+
+    assert _MIME_TYPE_OVERRIDES.get(".mp4") == "audio/mp4", (
+        f"FAIL: .mp4 must be served as audio/mp4, not the stdlib's default video/mp4 guess - "
+        f"got {_MIME_TYPE_OVERRIDES.get('.mp4')!r}"
+    )
+    print("PASS: .mp4 is served with an explicit audio/mp4 Content-Type override.")
+
+
 def main():
     print("=== Check 1: list/stream/Range/404/rescan+CSRF, against a real isolated library dir ===")
     check_list_and_stream_and_range_and_rescan()
+
+    print("\n=== Check 2: .mp4 gets an explicit audio/mp4 MIME override ===")
+    check_mp4_streams_with_an_audio_mime_type()
 
     print("\nALL LIBRARY API CHECKS PASSED.")
 

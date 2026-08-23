@@ -38,7 +38,15 @@ else:
 # instance sees the exact SAME music folder as the web service, by
 # design, not a duplicate.
 MUSIC_LIBRARY_DIR = os.environ.get("IRD_MUSIC_DIR", os.path.join(BASE_DIR, "music_library"))
-SUPPORTED_AUDIO_EXTENSIONS = {".mp3", ".ogg", ".oga", ".flac", ".wav", ".m4a", ".aac"}
+SUPPORTED_AUDIO_EXTENSIONS = {".mp3", ".ogg", ".oga", ".flac", ".wav", ".m4a", ".mp4", ".aac"}
+# .mp4 added 2026-08-23 - several AI music generators (the user's own
+# real case) export audio-only tracks in a plain .mp4 container rather
+# than .m4a, even though it's the exact same underlying MP4 container
+# format mutagen already reads via the same EasyMP4 class .m4a uses -
+# verified directly against a real generated file (tags/duration read
+# back correctly). See web/routers/library.py's own comment for the one
+# other place this needed a matching fix (the stream endpoint's MIME
+# type guess).
 
 # ---- web/ (browser-based companion, also the UI the desktop shell wraps) ----
 WEB_HOST = "0.0.0.0"  # bind all interfaces - matches sibling apps, reachable from LAN if ever wanted later
