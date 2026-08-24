@@ -95,6 +95,46 @@ warm, like returning somewhere familiar after a long time away.
 ambient, electronica, space, Tangerine Dream, Vangelis, analog synth, atmospheric, evolving, no vocals, no percussion, no drums
 ```
 
+## "Entertainment Box" advertisement jingle (added 2026-08-23)
+
+A deliberate tonal break from the ambient tracks above - an in-universe
+radio/holo advertisement for the **Entertainment Box**, the product name
+for the jukebox device itself (see the visual design work the same day).
+Upbeat, catchy, mid-century commercial-jingle energy, not atmosphere -
+the opposite mood of everything else in this file on purpose.
+
+### Ad copy
+
+> Tired of dead air on your station? Sick of silence in the hangar bay?
+> Introducing the ENTERTAINMENT BOX, from Imperial Radio Directorate!
+>
+> Feed it credits. Pick your disc. It plays - loud, clear, and it never
+> gets tired!
+>
+> From bars to bays, from Jita to the far reaches of null-sec, capsuleers
+> everywhere are asking for it by name!
+>
+> The Entertainment Box: it's not just a box. It's an EXPERIENCE.
+>
+> Ask your local outlet today - your station deserves better than
+> silence!
+
+### Prompt (for a musical jingle, not the ad copy itself)
+
+Upbeat, catchy commercial jingle, 15-20 seconds, mid-century radio-
+advertisement energy - bright brass-style synth stabs, a bouncy walking
+bassline, a simple, instantly-hummable 4-note hook repeated at least
+twice. Confident and a little over-the-top, like a salesman's pitch set
+to music. No vocals (the ad copy above would be read over it live, not
+sung). Ends on a bright, resolved final chord - a real "sting," not a
+fade-out.
+
+### Style tags
+
+```
+jingle, commercial, upbeat, brass synth, catchy hook, retro advertisement, confident, no vocals, short
+```
+
 ## Sources
 
 - [Jukebox Heroes: EVE Online's soundtrack - Engadget](https://www.engadget.com/2013-05-28-jukebox-heroes-eve-onlines-soundtrack.html)

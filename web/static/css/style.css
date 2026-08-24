@@ -1,24 +1,300 @@
-/* Intentionally bare (system font, basic list styling) for V1 -
-   real theming (the "alien reconstruction of a 1950s jukebox" visual
-   design) is deferred to its own later phase, after playback is
-   proven working end to end. See CLAUDE.md. */
-body {
-  font-family: sans-serif;
-  max-width: 640px;
-  margin: 2rem auto;
+/* Imperial Radio Directorate - "Entertainment Box" visual design.
+   Built from a story, not a picture (see docs/ or the design session
+   notes): a freestanding cabinet shape that converges naturally from
+   the brief alone (stores discs, takes credits, plays music for a
+   room), built in native Imperial dark alloy and gold/cyan light
+   throughout - no borrowed period material, no jukebox reference ever
+   actually copied. */
+
+:root {
+  --ink: #14110D;
+  --panel: #1E1A14;
+  --panel-raised: #282217;
+  --hairline: #3A311F;
+  --bronze: #B8874A;
+  --gold: #E8C878;
+  --cyan: #6FE7D8;
+  --text: #EDE6D8;
+  --text-dim: #9C927E;
+  --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-body: 'Manrope', -apple-system, sans-serif;
 }
-#track-list {
-  list-style: none;
+* { box-sizing: border-box; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0 0 4rem;
+}
+#player { display: none; }
+
+.wrap { max-width: 820px; margin: 0 auto; padding: 0 1.5rem; }
+
+.stage-section { padding: 3rem 0 2rem; }
+.stage {
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 15%, var(--panel-raised), var(--panel) 65%);
+  border: 0.5px solid var(--hairline);
+  padding: 4rem 1.5rem 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* ---- Cabinet ---- */
+.cabinet { width: 340px; position: relative; filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.6)); }
+
+.crown {
+  height: 70px;
+  width: 78%;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #3A3120, #241F14 55%, #171308);
+  border-radius: 170px 170px 0 0;
+  position: relative;
+  box-shadow: 0 0 30px 6px rgba(111, 231, 216, 0.3), inset 0 3px 0 rgba(255, 255, 255, 0.08);
+}
+/* Projected light, not painted lettering - a soft glow plus a faint
+   cyan/gold color-fringe on either side. */
+.crown-label {
+  position: absolute; left: 0; right: 0; top: 32px; text-align: center;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  text-shadow:
+    0 0 2px rgba(232, 200, 120, 0.7),
+    -1px 0 rgba(111, 231, 216, 0.55),
+    1px 0 rgba(232, 200, 120, 0.55);
+}
+
+.body {
+  background: linear-gradient(180deg, #282217 0%, #211C13 30%, #1A1610 70%, #14110D 100%);
+  border-radius: 8px;
+  padding: 22px 20px 24px;
+  position: relative;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.06) inset;
+}
+/* Worm-gear rod - threads painted solid gold against a dark metal
+   shaft, reused identically on the disc module's lifters below. */
+.side-tube {
+  position: absolute; top: -2px; bottom: 0; width: 11px; border-radius: 3px;
+  background:
+    repeating-linear-gradient(155deg, var(--gold) 0 2px, transparent 2px 9px),
+    linear-gradient(90deg, #3A3120, #5A4E38 45%, #3A3120);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+.side-tube.left { left: 2px; }
+.side-tube.right { right: 2px; }
+
+/* The front window - the disc and its orbiting arm, shown openly. */
+.window {
+  background: linear-gradient(160deg, #2E2818, #1C1710);
+  border: 1px solid #4A4230;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.window-viewport {
+  width: 152px; height: 152px; border-radius: 50%; position: relative; flex: none;
+  background: #0A0F0C;
+  box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.25), 0 0 24px 4px rgba(232, 200, 120, 0.22);
+}
+.window-title {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--text-dim);
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.disc {
+  position: absolute; inset: 14px; border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle, rgba(0, 0, 0, 0.4) 0 2px, transparent 2px 6px),
+    radial-gradient(circle at 42% 38%, #241F16, #0A0805 72%);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(232, 200, 120, 0.18);
+}
+.disc-hub {
+  position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px;
+  border-radius: 50%; background: var(--gold); box-shadow: 0 0 7px rgba(232, 200, 120, 0.75);
+}
+/* Only spins while something is actually playing - paused by default,
+   and whenever playback pauses. */
+.arm-pivot {
+  position: absolute; inset: 14px;
+  animation: orbit 9s linear infinite;
+  animation-play-state: paused;
+}
+.arm-pivot.spinning { animation-play-state: running; }
+@media (prefers-reduced-motion: reduce) { .arm-pivot { animation-duration: 60s; } }
+.arm-needle {
+  position: absolute; left: 50%; top: 5%; width: 2px; height: 44%; margin-left: -1px;
+  background: linear-gradient(180deg, var(--cyan), rgba(111, 231, 216, 0));
+}
+.arm-needle::after {
+  content: ''; position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; margin-left: -3px;
+  border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px rgba(111, 231, 216, 0.9);
+}
+@keyframes orbit { to { transform: rotate(360deg); } }
+
+/* The credit slot - decorative flavor, not wired to anything. */
+.credit-slot { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.credit-slot-mouth {
+  width: 26px; height: 4px; border-radius: 2px;
+  background: #08100D;
+  box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.35), 0 0 6px rgba(232, 200, 120, 0.3);
+}
+.credit-slot-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--text-dim); }
+
+.panel {
+  background: #0A0F0C;
+  border-radius: 8px;
+  padding: 16px 18px 18px;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.85), 0 0 22px rgba(111, 231, 216, 0.18);
+}
+.panel-ticker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: #7CF5DC;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 12px;
+}
+/* Pixel-matrix rain - decorative for now (not tied to real audio
+   analysis), each column a stack of small square LEDs, mostly dark. */
+.panel-bars { display: flex; align-items: stretch; gap: 5px; height: 40px; margin-bottom: 16px; }
+.pixel-col { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.pixel-col i {
+  flex: 1; border-radius: 1px; display: block; font-style: normal;
+  background: rgba(232, 200, 120, 0.08);
+}
+.pixel-col i.lit { background: var(--gold); box-shadow: 0 0 4px rgba(232, 200, 120, 0.65); }
+.pixel-col i.lit.cy { background: var(--cyan); box-shadow: 0 0 4px rgba(111, 231, 216, 0.65); }
+.pixel-col i.trail { background: rgba(232, 200, 120, 0.35); }
+.pixel-col i.trail.cy { background: rgba(111, 231, 216, 0.35); }
+
+.transport { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.pad {
+  background: linear-gradient(160deg, #3C3524, #1B170F);
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 0 8px rgba(111, 231, 216, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
   padding: 0;
 }
-#track-list li {
-  padding: 0.5rem;
+.pad:hover { box-shadow: 0 0 12px rgba(111, 231, 216, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+.pad:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.pad.sm { width: 36px; height: 32px; }
+.pad.lg { width: 52px; height: 44px; }
+.pad-glyph { width: 0; height: 0; display: block; }
+.pad-glyph.play { border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 11px solid var(--gold); }
+.pad-glyph.pause { width: 10px; height: 14px; border-left: 4px solid var(--gold); border-right: 4px solid var(--gold); }
+.pad-glyph.prev { border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-right: 9px solid var(--cyan); }
+.pad-glyph.next { border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 9px solid var(--cyan); }
+
+.grille {
+  margin-top: 18px; height: 48px; border-radius: 6px;
+  background:
+    repeating-linear-gradient(90deg, #0A0F0C 0 3px, transparent 3px 9px),
+    linear-gradient(180deg, #3A311F, #221E13);
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.6), 0 0 18px rgba(232, 200, 120, 0.15);
+}
+
+.plinth {
+  height: 16px; width: 88%; margin: 0 auto;
+  background: linear-gradient(180deg, #221D12, #14110D);
+  border-radius: 0 0 6px 6px;
+}
+
+/* ---- Disc module ---- */
+.assembly { display: flex; align-items: center; justify-content: center; gap: 0; }
+
+.bracket {
+  flex: none; width: 22px; height: 10px; align-self: center;
+  background: linear-gradient(180deg, #3A3120, #1A1610);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 0 6px rgba(232, 200, 120, 0.25);
+}
+
+.disc-module { width: 172px; flex: none; filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.55)); }
+.module-frame {
+  background: linear-gradient(180deg, #282217, #1A1610 70%, #14110D);
+  border-radius: 10px;
+  padding: 14px 12px 18px;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.06) inset;
+}
+.module-label {
+  text-align: center; font-family: var(--font-display); font-size: 12px; letter-spacing: 0.14em;
+  color: var(--gold); text-shadow: 0 0 8px rgba(232, 200, 120, 0.4); margin-bottom: 10px;
+}
+.module-window {
+  background: #0A0F0C;
+  border-radius: 6px;
+  padding: 18px 12px;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.85), 0 0 18px rgba(111, 231, 216, 0.15);
+  display: flex; flex-direction: row; align-items: stretch; gap: 8px;
+  min-height: 228px;
+}
+
+.spring-col { width: 16px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 0; }
+.lifter-plate {
+  width: 16px; height: 5px; border-radius: 2px; flex: none;
+  background: linear-gradient(160deg, #3A3120, #1A1610);
+  box-shadow: 0 0 5px rgba(232, 200, 120, 0.3);
+}
+.worm-gear {
+  flex: 1; width: 11px; border-radius: 3px;
+  background:
+    repeating-linear-gradient(155deg, var(--gold) 0 2px, transparent 2px 9px),
+    linear-gradient(90deg, #3A3120, #5A4E38 45%, #3A3120);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.disc-stack-wide { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.disc-plate {
+  width: 100%; height: 4px; border-radius: 2px;
+  background: #161208;
+  box-shadow: 0 0 0 1px rgba(232, 200, 120, 0.16);
+}
+
+/* ---- Library ---- */
+.library-section { padding: 1rem 0 3rem; }
+.library-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.library-head h2 {
+  font-family: var(--font-display); font-weight: 400; letter-spacing: 0.04em;
+  font-size: 22px; color: var(--gold); margin: 0;
+}
+.rescan-btn {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em;
+  background: var(--panel-raised);
+  color: var(--text);
+  border: 0.5px solid var(--hairline);
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
-  border-bottom: 1px solid #ccc;
 }
-#track-list li:hover {
-  background: #eee;
+.rescan-btn:hover { border-color: var(--bronze); }
+.rescan-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+.status { font-size: 13px; color: var(--text-dim); margin: 0 0 1rem; }
+
+.track-list { list-style: none; margin: 0; padding: 0; }
+.track-list li {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 0.5px solid var(--hairline);
+  cursor: pointer;
+  font-size: 14px;
 }
-#track-list li.playing {
-  font-weight: bold;
+.track-list li:hover { background: var(--panel); }
+.track-list li.playing {
+  color: var(--gold);
+  font-weight: 600;
 }
+.track-list .track-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track-list .track-duration { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); flex: none; }

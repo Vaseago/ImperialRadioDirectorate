@@ -121,24 +121,48 @@ Pi/web-installer packaging work without the user asking first.
   LATER phase, after the visual design phase - captured so the idea
   isn't lost, not a green light to build now.
 
+## Real jukebox frontend shipped (2026-08-23) - "The One Real Upgrade"
+
+The bare/functional-first frontend described as "not yet built" below
+is done. The final visual design (arrived at through many rounds of
+Artifact-hosted iteration, converging on a period jukebox cabinet whose
+exterior reads as function-driven, not a copied reference - see the
+`imperial-radio-directorate-idea` memory for the full design story) is
+now the real, live `web/templates/index.html`/`web/static/css/style.css`/
+`web/static/js/app.js` - cabinet crown/body/plinth, a live disc-and-arm
+`.window` viewport (`.arm-pivot`'s `.spinning` class toggles with real
+`player.paused` state), a 12-column pixel-matrix "rain" visualizer, real
+prev/play-pause/next transport, and a side `.disc-module` connected via
+a `.bracket`. Crown text still literally reads "IMPERIAL RADIO," not yet
+updated to "Entertainment Box" (the confirmed official in-universe
+product name per `docs/AI_MUSIC_PROMPT.md`'s ad-jingle section) - an
+open, not-yet-decided question, not an oversight.
+
+**Real gotcha hit and fixed during this build: browser HTTP caching of
+static JS/CSS.** `web/server.py` gained a `_NoCacheStaticFiles(StaticFiles)`
+subclass forcing `Cache-Control: no-store` on every `/static/*` response
+- plain `StaticFiles` caches normally, which silently served a stale
+`app.js` after real on-disk edits during development. **The debugging
+trap worth remembering**: an explicit `fetch(url, {cache: 'no-store'})`
+probe bypasses the browser's disk cache and will report the CORRECT,
+current file even while the page's own real `<script src>` tag is still
+loading a STALE cached copy underneath - the two don't share the same
+cache-bypass behavior, so "my no-cache fetch shows the right content"
+does NOT prove the live page is running the right content. A disk-cache
+entry written before the `no-store` fix was deployed also persists
+across brand-new tabs in the same browser profile/session - only a
+genuinely fresh browser session (not just a fresh tab) proved the fix
+actually worked. If a code change ever again appears to have "no
+effect" despite the file on disk being correct, suspect this class of
+bug before suspecting the code itself.
+
 ## Not yet built
 
-- **The alien-retro visual design.** V1's frontend (`web/templates/index.html`,
-  `web/static/css/style.css`, `web/static/js/app.js`) is deliberately
-  bare/functional-first - plain track list, native `<audio controls>`,
-  system font. This was intentional sequencing (backend/playback proven
-  working BEFORE any visual investment), not a placeholder that was
-  forgotten. From-scratch original design (no real reference image to
-  mirror, unlike UI work on the sibling apps that had real screenshots
-  to check against) - show 2-3 early visual directions before committing
-  to one. The native `<audio controls>` bar will need replacing with a
-  custom-skinned transport UI backed by the same `<audio>` element's
-  real events (native controls can't be reskinned consistently
-  cross-browser) - **re-verify seeking still works after reskinning**,
-  exactly the kind of change that can silently break real behavior while
-  looking fine at rest.
 - PWA polish (manifest/icons/service worker) - deferred until there's
   real iconography to ship, matching the sibling apps' own pattern.
+- Radio news snippets between tracks (see "Deliberately deferred"
+  above) - visual design phase is now done, so this is the natural next
+  phase, but still not started without an explicit ask.
 
 ## Verified live, 2026-08-21 (not just "compiles")
 
