@@ -43,7 +43,10 @@ def check_list_and_stream_and_range_and_rescan():
                 tracks = resp.json()
                 assert len(tracks) == 1, f"FAIL: expected 1 track from the isolated library dir, got {len(tracks)}"
                 assert tracks[0]["title"] == "test song", f"FAIL: unexpected title {tracks[0]['title']!r}"
-                print("PASS: GET /api/library/tracks lists the real scanned track with correct fallback title.")
+                assert tracks[0]["station"] == "General", (
+                    f"FAIL: a loose track at the library root should report station 'General', got {tracks[0]['station']!r}"
+                )
+                print("PASS: GET /api/library/tracks lists the real scanned track with correct fallback title and station.")
 
                 track_id = tracks[0]["id"]
 
@@ -82,6 +85,45 @@ def check_list_and_stream_and_range_and_rescan():
         shutil.rmtree(isolated_tmp, ignore_errors=True)
 
 
+def check_commercials_are_a_separate_pool_and_stream_correctly():
+    # Added 2026-08-24: commercials live in their own COMMERCIAL_DIRS,
+    # never mixed into /api/library/tracks - the ad-break logic in
+    # app.js needs to pick from a pool it can rely on being ads only.
+    # Also proves the streaming endpoint's fix (it must check BOTH
+    # app.state.tracks and app.state.commercials, not just tracks).
+    tracks_tmp = tempfile.mkdtemp(prefix="ird_api_test_tracks_")
+    commercials_tmp = tempfile.mkdtemp(prefix="ird_api_test_commercials_")
+    try:
+        _write_silent_wav(os.path.join(tracks_tmp, "song.wav"), seconds=1.0)
+        _write_silent_wav(os.path.join(commercials_tmp, "ad.wav"), seconds=1.0)
+
+        with mock.patch.object(config, "MUSIC_LIBRARY_DIRS", [tracks_tmp]), \
+             mock.patch.object(config, "COMMERCIAL_DIRS", [commercials_tmp]):
+            from fastapi.testclient import TestClient
+            from web.server import app
+
+            with TestClient(app) as client:
+                tracks_resp = client.get("/api/library/tracks")
+                assert len(tracks_resp.json()) == 1, "FAIL: /tracks should only list the real track, not the commercial"
+
+                commercials_resp = client.get("/api/library/commercials")
+                assert commercials_resp.status_code == 200, f"FAIL: expected 200, got {commercials_resp.status_code}"
+                commercials = commercials_resp.json()
+                assert len(commercials) == 1, f"FAIL: expected exactly 1 commercial, got {len(commercials)}"
+                assert commercials[0]["title"] == "ad", f"FAIL: unexpected commercial title {commercials[0]['title']!r}"
+                print("PASS: GET /api/library/commercials lists only the commercial pool, separate from /tracks.")
+
+                ad_id = commercials[0]["id"]
+                stream_resp = client.get(f"/api/library/tracks/{ad_id}/stream")
+                assert stream_resp.status_code == 200, (
+                    f"FAIL: a commercial's id must stream successfully via the same endpoint, got {stream_resp.status_code}"
+                )
+                print("PASS: a commercial track streams correctly through the shared /stream endpoint.")
+    finally:
+        shutil.rmtree(tracks_tmp, ignore_errors=True)
+        shutil.rmtree(commercials_tmp, ignore_errors=True)
+
+
 def check_mp4_streams_with_an_audio_mime_type():
     # Added 2026-08-23 alongside config.SUPPORTED_AUDIO_EXTENSIONS gaining
     # .mp4: Python's stdlib mimetypes module guesses "video/mp4" for this
@@ -107,6 +149,9 @@ def main():
 
     print("\n=== Check 2: .mp4 gets an explicit audio/mp4 MIME override ===")
     check_mp4_streams_with_an_audio_mime_type()
+
+    print("\n=== Check 3: commercials are a separate pool and stream correctly ===")
+    check_commercials_are_a_separate_pool_and_stream_correctly()
 
     print("\nALL LIBRARY API CHECKS PASSED.")
 

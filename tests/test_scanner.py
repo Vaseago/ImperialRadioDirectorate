@@ -85,6 +85,44 @@ def check_missing_library_dir_is_skipped_not_an_error():
     print("PASS: a nonexistent library directory is silently skipped, not an error.")
 
 
+def check_station_derived_from_folder():
+    # Added 2026-08-24: a track's "station" is folder-per-station - its
+    # top-level subfolder relative to the library dir, however deep it
+    # actually sits within it. A track with no subfolder (loose at the
+    # library root) falls into a shared "General" catch-all instead of
+    # being invisible to any station.
+    isolated_tmp = tempfile.mkdtemp(prefix="ird_scanner_test_")
+    try:
+        root_path = os.path.join(isolated_tmp, "loose_track.wav")
+        _write_silent_wav(root_path, seconds=1.0)
+
+        station_dir = os.path.join(isolated_tmp, "low_sec-transit")
+        os.makedirs(station_dir)
+        station_path = os.path.join(station_dir, "watchful.wav")
+        _write_silent_wav(station_path, seconds=1.0)
+
+        nested_dir = os.path.join(station_dir, "extra_nesting")
+        os.makedirs(nested_dir)
+        nested_path = os.path.join(nested_dir, "deep.wav")
+        _write_silent_wav(nested_path, seconds=1.0)
+
+        tracks = scan_library_dirs([isolated_tmp])
+        by_path = {t.path: t for t in tracks}
+
+        assert by_path[root_path].station == "General", (
+            f"FAIL: a loose track at the library root should fall into 'General', got {by_path[root_path].station!r}"
+        )
+        assert by_path[station_path].station == "Low Sec Transit", (
+            f"FAIL: station name should be the cleaned-up top-level folder name, got {by_path[station_path].station!r}"
+        )
+        assert by_path[nested_path].station == "Low Sec Transit", (
+            f"FAIL: a track nested deeper than one level should still use the TOP-level folder as its station, got {by_path[nested_path].station!r}"
+        )
+        print("PASS: station is derived from the top-level subfolder, with a 'General' fallback for loose files.")
+    finally:
+        shutil.rmtree(isolated_tmp, ignore_errors=True)
+
+
 def check_mp4_is_a_supported_extension():
     # Added 2026-08-23: several AI music generators (the user's own real
     # case) export audio-only-in-intent tracks as plain .mp4 rather than
@@ -114,6 +152,9 @@ def main():
 
     print("\n=== Check 4: .mp4 stays a supported extension ===")
     check_mp4_is_a_supported_extension()
+
+    print("\n=== Check 5: station is derived from folder, with a 'General' fallback ===")
+    check_station_derived_from_folder()
 
     print("\nALL SCANNER CHECKS PASSED.")
 

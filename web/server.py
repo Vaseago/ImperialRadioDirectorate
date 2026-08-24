@@ -51,6 +51,8 @@ class _NoCacheStaticFiles(StaticFiles):
 async def lifespan(app: FastAPI):
     tracks = scan_library_dirs(config.MUSIC_LIBRARY_DIRS)
     app.state.tracks = {t.id: t for t in tracks}
+    commercials = scan_library_dirs(config.COMMERCIAL_DIRS)
+    app.state.commercials = {t.id: t for t in commercials}
     yield
 
 

@@ -9,15 +9,23 @@ in the Imperial suite. Fully independent from its siblings: **zero EVE
 ESI dependency, zero SDE dependency** - a pure local media player,
 themed around EVE, with no EVE Online API dependency at all.
 
-**The creative concept** (confirmed with the user, 2026-08-21): visually
-and sonically, a 1950s American diner-style jukebox reimagined as if
-built by someone in the EVE-future who only knows about "jukeboxes" from
-fragmentary historical records, reconstructing one using their own era's
-alien tech and getting the details charmingly wrong (holographic
-emitters instead of glass tubes, force-field-style buttons, proportions
-that never quite fit a human). The visual design phase (not yet built -
-see "Not yet built" below) applies this to the UI; the music-library
-design already applies it to the AUDIO too - see the next section.
+**The creative concept, SUPERSEDED 2026-08-24** (originally confirmed
+2026-08-21, then deliberately redesigned - see "Real frontend rebuilt"
+below for the full story): the device is now a **car-radio
+reconstruction**, not a jukebox. The builder has heard, secondhand, of
+a vehicle driven on paths he's never seen, carrying an item that caught
+broadcast music/jingles/ads from the air, tuned by a knob to a
+"frequency" - he has no concept of a car, a road, or radio itself, only
+this one fragment. What he built is his own best guess at the receiving
+item alone, freed of any vehicle it might have sat in: a wood-framed
+black box with a circular tuning dial, nothing else. The
+jukebox/disc-storage concept described in the rest of this section
+historically (crown/body/plinth cabinet, disc-and-arm viewport,
+disc-module) is **gone, fully replaced** - kept out of this file except
+where a later section explicitly narrates the pivot, so a fresh reader
+isn't misled by a description of a design that no longer exists. The
+music-library architecture (AI-approximated "reconstructed audio,
+fragmentary records") still applies unchanged - see the next section.
 
 ## Legal grounding (read before touching the music library)
 
@@ -121,25 +129,13 @@ Pi/web-installer packaging work without the user asking first.
   LATER phase, after the visual design phase - captured so the idea
   isn't lost, not a green light to build now.
 
-## Real jukebox frontend shipped (2026-08-23) - "The One Real Upgrade"
+## Real frontend rebuilt (2026-08-23 to 2026-08-24) - the tuner, not the jukebox
 
-The bare/functional-first frontend described as "not yet built" below
-is done. The final visual design (arrived at through many rounds of
-Artifact-hosted iteration, converging on a period jukebox cabinet whose
-exterior reads as function-driven, not a copied reference - see the
-`imperial-radio-directorate-idea` memory for the full design story) is
-now the real, live `web/templates/index.html`/`web/static/css/style.css`/
-`web/static/js/app.js` - cabinet crown/body/plinth, a live disc-and-arm
-`.window` viewport (`.arm-pivot`'s `.spinning` class toggles with real
-`player.paused` state), a 12-column pixel-matrix "rain" visualizer, real
-prev/play-pause/next transport, and a side `.disc-module` connected via
-a `.bracket`. Crown text still literally reads "IMPERIAL RADIO," not yet
-updated to "Entertainment Box" (the confirmed official in-universe
-product name per `docs/AI_MUSIC_PROMPT.md`'s ad-jingle section) - an
-open, not-yet-decided question, not an oversight.
-
-**Real gotcha hit and fixed during this build: browser HTTP caching of
-static JS/CSS.** `web/server.py` gained a `_NoCacheStaticFiles(StaticFiles)`
+**First pass (2026-08-23, since fully replaced)**: a period jukebox
+cabinet - crown/body/plinth, a disc-and-arm viewport, a side disc-module
+- was built and shipped as the real frontend. **Real gotcha hit and
+fixed during that build, still relevant**: browser HTTP caching of
+static JS/CSS. `web/server.py` carries a `_NoCacheStaticFiles(StaticFiles)`
 subclass forcing `Cache-Control: no-store` on every `/static/*` response
 - plain `StaticFiles` caches normally, which silently served a stale
 `app.js` after real on-disk edits during development. **The debugging
@@ -156,6 +152,102 @@ actually worked. If a code change ever again appears to have "no
 effect" despite the file on disk being correct, suspect this class of
 bug before suspecting the code itself.
 
+**Second pass (2026-08-24, the current, live design)**: the user
+rejected the jukebox cabinet outright ("doesn't look good imo... lets
+go with" the car-radio backstory - see "The creative concept" above)
+and asked to rebuild around a completely different physical object: a
+wood-framed black box holding one circular tuning dial, nothing else.
+Iterated live via a single persistent Artifact
+(`https://claude.ai/code/artifact/cccea29f-f98e-4d2e-a7f5-3fb4595ace7e`)
+through several real corrections worth remembering:
+- **A radial needle/"arm" pointing from the hub center looked "too
+  strange"** - replaced with a small glowing dot that rides the arc at
+  the tick radius (no visible shaft connecting it to center at all), so
+  it reads as a tuning indicator LIGHT, not a gauge hand. `.needle`'s
+  CSS comment in `style.css` records this explicitly - don't
+  reintroduce a radial line here without re-litigating why it was
+  removed.
+- **No cabinet at all** - the black box IS the whole device, not housed
+  in anything. A thin wood-grain `.wood-frame` border was added around
+  it afterward (fits the "car radio in a wood dash" origin story), but
+  that's decorative framing, not a cabinet with its own body/crown/side
+  modules.
+- **The hub is the only control** - no separate transport row, no track
+  list. Clicking the RIGHT half of the hub steps to the next station,
+  the LEFT half steps back, and dead CENTER toggles play/pause. This is
+  real, live code (`web/static/js/app.js`'s `hub-hit` click handler,
+  `svgPoint()` converting a real click to SVG-space coordinates via
+  `getScreenCTM().inverse()`), not just the mockup.
+- **No track list, ever** - each station plays a random pick from its
+  own pool automatically (`pickRandomTrack()`, avoids immediately
+  repeating the last pick), advancing on the real `<audio>` `ended`
+  event - matching how an actual broadcast works, you tune to a
+  station, you don't pick the song.
+
+## Stations, commercials, and static (added 2026-08-24)
+
+**"Station" is folder-per-station, not a hardcoded list.** A track's
+top-level subfolder relative to its library dir becomes its station
+name (`library/scanner.py`'s `_station_name()`), however deep the file
+actually sits within that subfolder. A track with no subfolder (loose
+at the library root - true of all 11 real files today) falls into a
+shared `"General"` catch-all instead of being invisible. This was a
+real, deliberate default chosen without asking first (documented as
+such when built) - reversible any time by just adding subfolders under
+`music_library/`. `web/static/js/app.js`'s `groupIntoStations()` builds
+the dial's stations from whatever distinct `station` values come back
+from `GET /api/library/tracks`, spreading them evenly across the arc
+and assigning frequency numbers deterministically (alphabetical order,
+88.1 to 108.3) - genuinely data-driven, not the mockup's fixed 4.
+
+**A synthetic "All Stations" entry** is prepended whenever more than
+one REAL station exists (never when there's only one - it would just
+duplicate that one station), pulling randomly from every track
+regardless of its real station.
+
+**Commercials are a separate pool, never mixed into the station data.**
+`config.COMMERCIALS_DIR` (default: a sibling `music_library_commercials/`
+folder, NOT a subfolder of `MUSIC_LIBRARY_DIR` - that would make it look
+like just another station to the folder-per-station logic) is scanned
+independently into `app.state.commercials`, served via its own
+`GET /api/library/commercials`. `web/static/js/app.js`'s `playNext()`
+rolls a 25% chance (`AD_CHANCE`) to play a random commercial instead of
+the next station pick, whenever the pool isn't empty and it isn't
+already mid-commercial - real, working scheduling logic that simply
+never fires today since `music_library_commercials/` is empty (no ad
+audio exists yet - would need the same manual external-TTS flow as
+`docs/AI_MUSIC_PROMPT.md`'s "Entertainment Box" ad jingle prompt).
+`GET /api/library/tracks/{id}/stream` checks BOTH `app.state.tracks` and
+`app.state.commercials` for a matching id, so a commercial streams
+through the exact same endpoint a station track does.
+
+**An empty library plays generated static, not silence.** If
+`GET /api/library/tracks` comes back with zero stations, the dial still
+shows "NO SIGNAL" and the hub's CENTER click still works - it starts a
+real Web Audio API white-noise loop (`startStatic()`/`stopStatic()` in
+`app.js`: a 2-second buffer of random samples via `AudioContext.createBuffer()`,
+looped, at low gain) rather than nothing. Left/right are no-ops with
+zero stations (nothing to step between), but center always works -
+otherwise there'd be no way to ever hear the static at all.
+
+**Real bugs found and fixed live, 2026-08-24, via the user's own
+hands-on testing of the running app** (not caught by any automated
+test, since these are UI-interaction bugs): (1) `tune()` originally
+only started playback `if (playing)` was already true - meaning
+changing station while paused did nothing audible at all. Fixed:
+turning the dial is now itself a "play this now" action, unconditionally
+setting `playing = true` and picking a fresh track, regardless of prior
+state - a real radio always produces sound when tuned. (2) The initial
+page-load call to `tune()` needed a separate `autoplay=false` path so
+it DOESN'T try to auto-play on load (browsers block audio without a
+real user gesture anyway, which would have desynced the "PLAYING" text
+from actual silence) - `tune(index, autoplay)`'s second parameter exists
+specifically for this one call site. (3) The hub's click handler
+originally bailed out entirely `if (stations.length === 0)`, which would
+have made the CENTER click (the only way to hear static) unreachable
+too - fixed to only skip the left/right branches when there's nothing to
+step between, never the center branch.
+
 ## Not yet built
 
 - PWA polish (manifest/icons/service worker) - deferred until there's
@@ -163,6 +255,8 @@ bug before suspecting the code itself.
 - Radio news snippets between tracks (see "Deliberately deferred"
   above) - visual design phase is now done, so this is the natural next
   phase, but still not started without an explicit ask.
+- Real commercial audio content - the scheduling mechanism is live (see
+  above), `music_library_commercials/` just has nothing in it yet.
 
 ## Verified live, 2026-08-21 (not just "compiles")
 
@@ -214,3 +308,39 @@ playback of a real converted `.m4a` track confirmed genuinely playing
 (`paused: false`, `readyState: 4`, `currentTime` advancing, correct
 30.77s duration), and a real `Range: bytes=0-999` request against it
 returned `206`/`Content-Type: audio/mp4`/correct `Content-Range`.
+
+## Verified live, 2026-08-24 (the current tuner frontend + stations/commercials/static)
+
+Full backend suite: 15/15 checks pass across `tests/test_scanner.py`
+(now 5 checks - added folder-per-station derivation, including the
+nested-subfolder and loose-file-at-root cases) and
+`tests/test_library_api.py` (now 3 checks - added the `station` field
+on `/tracks` and the separate `/commercials` pool + its shared streaming
+endpoint). Real, not mocked-away: `check_commercials_are_a_separate_pool_and_stream_correctly()`
+uses two genuinely separate isolated temp dirs for `MUSIC_LIBRARY_DIRS`
+vs `COMMERCIAL_DIRS`.
+
+Frontend verified live via real DOM click dispatch against the running
+`ird-test` server (port 18060, real 11-track library), not just code
+review: initial page load shows "General" (the only real station right
+now) tuned but correctly PAUSED, not auto-playing; clicking the right
+half of the hub starts real playback (`paused: false`, `readyState: 4`,
+a real track title) even though there's only one real station to step
+within, confirming the "turning the dial always plays something" fix;
+center click toggles pause/resume correctly, including the CSS `.paused`
+class; the generated white-noise static (`startStatic()`/`stopStatic()`)
+was directly invoked and confirmed producing a real `running` AudioContext
+with an active buffer source, and confirmed reachable end-to-end through
+`setPlaying(true)` when `stations.length === 0`, including the correct
+"STATIC" / "NO SIGNAL" text swap.
+
+Desktop shell re-verified against this exact frontend (not the earlier
+jukebox one): launched `ird_desktop_main.py` for real, confirmed via the
+spawned web server's own request log that the `QWebEngineView` loaded
+`/`, `/static/css/style.css`, `/static/js/app.js`, `GET /api/library/tracks`,
+and the new `GET /api/library/commercials` - all `200 OK`, zero errors.
+Process tree cleaned up afterward (`Stop-Process` on the real PIDs found
+via `Get-CimInstance Win32_Process`, not a blind `pkill` guess - the
+first `pkill -f ird_desktop_main.py` attempt silently matched nothing
+because the real process tree was `python3.exe` -> `python.exe`, not a
+name `pkill` happened to match).

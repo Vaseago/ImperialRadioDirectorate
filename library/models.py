@@ -19,3 +19,4 @@ class Track:
     path: str
     library_dir: str
     mtime: float
+    station: str

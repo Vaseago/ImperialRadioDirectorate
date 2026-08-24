@@ -10,3 +10,7 @@ data_desktop/
 music_library/*
 !music_library/.gitkeep
 !music_library/README.md
+
+music_library_commercials/*
+!music_library_commercials/.gitkeep
+!music_library_commercials/README.md

@@ -36,27 +36,38 @@ _MIME_TYPE_OVERRIDES = {".mp4": "audio/mp4"}
 
 
 def _track_sort_key(track):
-    return (track.artist.lower(), track.album.lower(), track.title.lower())
+    return (track.station.lower(), track.artist.lower(), track.album.lower(), track.title.lower())
+
+
+def _serialize(t):
+    return {
+        "id": t.id,
+        "title": t.title,
+        "artist": t.artist,
+        "album": t.album,
+        "duration_seconds": t.duration_seconds,
+        "station": t.station,
+    }
 
 
 @router.get("/tracks")
 async def list_tracks(request: Request):
     tracks = sorted(request.app.state.tracks.values(), key=_track_sort_key)
-    return [
-        {
-            "id": t.id,
-            "title": t.title,
-            "artist": t.artist,
-            "album": t.album,
-            "duration_seconds": t.duration_seconds,
-        }
-        for t in tracks
-    ]
+    return [_serialize(t) for t in tracks]
+
+
+@router.get("/commercials")
+async def list_commercials(request: Request):
+    # Same Track shape as /tracks (station is meaningless here and
+    # ignored by the frontend) - a separate pool so ad-break selection
+    # never has to filter station tracks out by name/convention.
+    commercials = sorted(request.app.state.commercials.values(), key=_track_sort_key)
+    return [_serialize(t) for t in commercials]
 
 
 @router.get("/tracks/{track_id}/stream")
 async def stream_track(track_id: str, request: Request):
-    track = request.app.state.tracks.get(track_id)
+    track = request.app.state.tracks.get(track_id) or request.app.state.commercials.get(track_id)
     if track is None:
         raise HTTPException(status_code=404, detail="Track not found")
 
@@ -69,4 +80,6 @@ async def stream_track(track_id: str, request: Request):
 async def rescan_library(request: Request):
     tracks = scan_library_dirs(config.MUSIC_LIBRARY_DIRS)
     request.app.state.tracks = {t.id: t for t in tracks}
-    return {"track_count": len(tracks)}
+    commercials = scan_library_dirs(config.COMMERCIAL_DIRS)
+    request.app.state.commercials = {t.id: t for t in commercials}
+    return {"track_count": len(tracks), "commercial_count": len(commercials)}

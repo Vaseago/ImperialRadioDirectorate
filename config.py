@@ -75,3 +75,15 @@ def _load_config_overrides(path: str) -> dict:
 _CONFIG_OVERRIDES_PATH = os.path.join(DATA_DIR, "config_overrides.json")
 _config_overrides = _load_config_overrides(_CONFIG_OVERRIDES_PATH)
 MUSIC_LIBRARY_DIRS = [MUSIC_LIBRARY_DIR] + list(_config_overrides.get("extra_music_dirs", []))
+
+# ---- Commercials ----
+# A SEPARATE library, deliberately not a subfolder of MUSIC_LIBRARY_DIR
+# (which would otherwise make it look like just another "station" to
+# library/scanner.py's folder-per-station logic) - real ad/jingle audio
+# dropped here (e.g. a TTS reading of the Entertainment Box ad copy in
+# docs/AI_MUSIC_PROMPT.md) plays at random regardless of which station
+# is tuned. Empty by default - the ad-break logic in web/static/js/app.js
+# simply never fires when this list is empty, no placeholder content
+# needed for the mechanism itself to work correctly.
+COMMERCIALS_DIR = os.environ.get("IRD_COMMERCIALS_DIR", os.path.join(BASE_DIR, "music_library_commercials"))
+COMMERCIAL_DIRS = [COMMERCIALS_DIR] + list(_config_overrides.get("extra_commercial_dirs", []))

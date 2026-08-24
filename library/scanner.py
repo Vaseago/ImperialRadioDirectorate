@@ -32,6 +32,19 @@ def _track_id(relative_path: str) -> str:
     return hashlib.sha1(relative_path.encode("utf-8")).hexdigest()[:16]
 
 
+def _station_name(relative_path: str) -> str:
+    # "Station" is folder-per-station: a track's top-level subfolder
+    # (relative to its library dir) is its station, however deep the
+    # file actually sits within it. A track with no subfolder (sitting
+    # loose at the library root - the common case today, before any
+    # real curation) falls into a shared "General" catch-all rather
+    # than being silently invisible.
+    parts = relative_path.split(os.sep)
+    if len(parts) <= 1:
+        return "General"
+    return parts[0].replace("_", " ").replace("-", " ").strip().title()
+
+
 def _read_track(path: str, library_dir: str) -> Track | None:
     try:
         stat = os.stat(path)
@@ -65,6 +78,7 @@ def _read_track(path: str, library_dir: str) -> Track | None:
             path=path,
             library_dir=library_dir,
             mtime=stat.st_mtime,
+            station=_station_name(relative_path),
         )
     except Exception:
         # One corrupt/unreadable file must never abort the whole scan -

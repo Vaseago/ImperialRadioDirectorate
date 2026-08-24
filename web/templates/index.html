@@ -3,101 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Imperial Radio Directorate</title>
+<title>Entertainment Box</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 <audio id="player"></audio>
 
 <div class="wrap">
-  <div class="stage-section">
-    <div class="stage">
-      <div class="assembly">
-        <div class="cabinet">
-          <div class="crown">
-            <div class="crown-label">IMPERIAL RADIO</div>
-          </div>
-          <div class="body">
-            <div class="side-tube left"></div>
-            <div class="side-tube right"></div>
-            <div class="window">
-              <div class="window-viewport" id="viewport">
-                <div class="disc"></div>
-                <div class="arm-pivot" id="arm-pivot"><div class="arm-needle"></div></div>
-                <div class="disc-hub"></div>
-              </div>
-              <div class="window-title" id="window-title">NO SIGNAL</div>
-            </div>
-            <div class="panel">
-              <div class="panel-ticker" id="panel-ticker">SELECT A TRACK</div>
-              <div class="panel-bars" aria-hidden="true">
-                <div class="pixel-col"><i></i><i></i><i></i><i class="lit"></i><i class="trail"></i><i></i></div>
-                <div class="pixel-col"><i></i><i class="lit"></i><i class="trail"></i><i></i><i></i><i></i></div>
-                <div class="pixel-col"><i></i><i></i><i></i><i></i><i class="lit cy"></i><i class="trail cy"></i></div>
-                <div class="pixel-col"><i></i><i></i><i class="lit"></i><i class="trail"></i><i></i><i></i></div>
-                <div class="pixel-col"><i class="lit cy"></i><i class="trail cy"></i><i></i><i></i><i></i><i></i></div>
-                <div class="pixel-col"><i></i><i></i><i></i><i></i><i></i><i class="lit"></i></div>
-                <div class="pixel-col"><i></i><i></i><i></i><i class="lit cy"></i><i class="trail cy"></i><i></i></div>
-                <div class="pixel-col"><i></i><i class="lit"></i><i class="trail"></i><i></i><i></i><i></i></div>
-                <div class="pixel-col"><i></i><i></i><i></i><i></i><i class="lit"></i><i class="trail"></i></div>
-                <div class="pixel-col"><i></i><i></i><i class="lit cy"></i><i class="trail cy"></i><i></i><i></i></div>
-                <div class="pixel-col"><i class="lit"></i><i class="trail"></i><i></i><i></i><i></i><i></i></div>
-                <div class="pixel-col"><i></i><i></i><i></i><i></i><i></i><i class="lit cy"></i></div>
-              </div>
-              <div class="transport">
-                <button class="pad sm" id="prev-btn" aria-label="Previous track"><span class="pad-glyph prev"></span></button>
-                <button class="pad lg" id="play-btn" aria-label="Play"><span class="pad-glyph play" id="play-glyph"></span></button>
-                <button class="pad sm" id="next-btn" aria-label="Next track"><span class="pad-glyph next"></span></button>
-              </div>
-              <div class="credit-slot">
-                <div class="credit-slot-mouth"></div>
-                <span class="credit-slot-label">FEED CREDITS</span>
-              </div>
-            </div>
-            <div class="grille"></div>
-          </div>
-          <div class="plinth"></div>
-        </div>
-
-        <div class="bracket"></div>
-
-        <div class="disc-module">
-          <div class="module-frame">
-            <div class="module-label">DISCS</div>
-            <div class="module-window">
-              <div class="spring-col">
-                <div class="lifter-plate"></div>
-                <div class="worm-gear"></div>
-                <div class="lifter-plate"></div>
-              </div>
-              <div class="disc-stack-wide">
-                <div class="disc-plate"></div><div class="disc-plate"></div><div class="disc-plate"></div>
-                <div class="disc-plate"></div><div class="disc-plate"></div><div class="disc-plate"></div>
-                <div class="disc-plate"></div>
-              </div>
-              <div class="spring-col">
-                <div class="lifter-plate"></div>
-                <div class="worm-gear"></div>
-                <div class="lifter-plate"></div>
-              </div>
-            </div>
-          </div>
+  <div class="wood-frame">
+    <div class="dial-shell">
+      <div class="now-playing" id="now-playing">NO SIGNAL</div>
+      <div class="dial-scale-wrap">
+        <svg viewBox="0 0 300 190" id="dial-svg">
+          <g id="ticks"></g>
+          <g id="station-markers"></g>
+          <circle class="hub" cx="150" cy="150" r="46"/>
+          <g class="knurl" id="knurl"></g>
+          <circle class="hub-inner" cx="150" cy="150" r="34"/>
+          <g class="needle" id="needle">
+            <circle class="tip-ring" cx="150" cy="58" r="6.5"/>
+            <circle class="tip" cx="150" cy="58" r="3.4"/>
+          </g>
+          <text class="freq-readout" x="150" y="145" id="freq-readout">--.-</text>
+          <text class="freq-unit" x="150" y="158">CYCLES/SEC</text>
+          <circle class="hub-hit" id="hub-hit" cx="150" cy="150" r="46"/>
+        </svg>
+      </div>
+      <div class="signal-viewport">
+        <div class="signal-bars" id="signal-bars"></div>
+        <div class="signal-status">
+          <span id="signal-label">NO SIGNAL</span>
+          <span id="play-state" class="play-state">PAUSED</span>
+          <span class="lock-state" id="lock-state">NO LOCK</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="library-section">
-    <div class="library-head">
-      <h2>Library</h2>
-      <button id="rescan-btn" class="rescan-btn">Rescan Library</button>
-    </div>
-    <p id="status" class="status"></p>
-    <ul id="track-list" class="track-list"></ul>
-  </div>
+  <p class="status" id="status"></p>
+  <button id="rescan-btn" class="rescan-btn">Rescan Library</button>
 </div>
 
 <script src="/static/js/app.js"></script>
