@@ -37,7 +37,7 @@ body {
 /* ============ WOOD FRAME + THE BLACK BOX ============ */
 .wood-frame {
   width: min(360px, 90vw);
-  padding: 32px 10px 10px;
+  padding: 32px 10px 26px;
   border-radius: 20px;
   position: relative;
   background:
@@ -48,7 +48,9 @@ body {
 
 /* Etched into the wood, not a separate plaque - a recessed groove
    (darker than the surrounding wood, no glow) with a thin highlight
-   just below catching the light, like a routed engraving. */
+   just below catching the light, like a routed engraving. Top =
+   product name, prominent. Bottom = maker's mark, smaller/quieter -
+   same material treatment, real nameplate hierarchy. */
 .frame-label {
   position: absolute;
   top: 10px;
@@ -62,6 +64,21 @@ body {
   text-transform: uppercase;
   color: #3a2a18;
   text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.frame-label-bottom {
+  position: absolute;
+  bottom: 9px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a2a18;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.2);
 }
 
 .now-playing {
