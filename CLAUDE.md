@@ -127,7 +127,17 @@ Pi/web-installer packaging work without the user asking first.
   `C:\Users\vasea\.claude\plans\mellow-petting-stardust.md`, "Future
   idea... in-universe radio news snippets"). Explicitly scoped as a
   LATER phase, after the visual design phase - captured so the idea
-  isn't lost, not a green light to build now.
+  isn't lost, not a green light to build now. **Confirmed 2026-08-24:
+  once built, news snippets share `music_library_commercials/` with the
+  ad jingles - NOT a separate folder/config/endpoint.** The commercials
+  pool is already treated generically by `playNext()`'s ad-break logic
+  (see "Stations, commercials, and static" below) - it doesn't care what
+  KIND of non-station content it's picking, only that it's in that pool.
+  So this feature needs zero new backend/config work when it's actually
+  built: generate the TTS audio (same manual external flow as the ad
+  jingle), drop the files into `music_library_commercials/` alongside
+  whatever ad content is there, and they'll automatically get randomly
+  mixed in through the exact same mechanism already shipped today.
 
 ## Real frontend rebuilt (2026-08-23 to 2026-08-24) - the tuner, not the jukebox
 
@@ -248,13 +258,23 @@ have made the CENTER click (the only way to hear static) unreachable
 too - fixed to only skip the left/right branches when there's nothing to
 step between, never the center branch.
 
+**Branding, added 2026-08-24**: with no cabinet/crown left, the device
+had no visible name anywhere on it (only the `<title>` tag). Fixed by
+etching "ENTERTAINMENT BOX" directly into the top of the `.wood-frame`
+itself (`.frame-label` - a recessed/engraved text treatment: a color
+darker than the surrounding wood plus a 1px light `text-shadow` below
+to fake a carved highlight, no glow) rather than adding a separate
+plaque or crown element - the wood border IS the branding surface now.
+
 ## Not yet built
 
 - PWA polish (manifest/icons/service worker) - deferred until there's
   real iconography to ship, matching the sibling apps' own pattern.
 - Radio news snippets between tracks (see "Deliberately deferred"
   above) - visual design phase is now done, so this is the natural next
-  phase, but still not started without an explicit ask.
+  phase, but still not started without an explicit ask. Folder/scheduling
+  decision already made (see that section) - shares
+  `music_library_commercials/` with ad jingles, no new plumbing needed.
 - Real commercial audio content - the scheduling mechanism is live (see
   above), `music_library_commercials/` just has nothing in it yet.
 

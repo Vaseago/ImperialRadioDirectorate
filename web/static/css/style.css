@@ -37,12 +37,31 @@ body {
 /* ============ WOOD FRAME + THE BLACK BOX ============ */
 .wood-frame {
   width: min(360px, 90vw);
-  padding: 10px;
+  padding: 32px 10px 10px;
   border-radius: 20px;
+  position: relative;
   background:
     repeating-linear-gradient(97deg, rgba(0,0,0,0.10) 0 2px, transparent 2px 7px, rgba(0,0,0,0.05) 7px 9px, transparent 9px 15px),
     linear-gradient(100deg, #5c3d24 0%, #7a5433 18%, #5c3d24 34%, #6e4a2c 52%, #86603a 68%, #5c3d24 84%, #6e4a2c 100%);
   box-shadow: 0 30px 60px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 4px rgba(0,0,0,0.4);
+}
+
+/* Etched into the wood, not a separate plaque - a recessed groove
+   (darker than the surrounding wood, no glow) with a thin highlight
+   just below catching the light, like a routed engraving. */
+.frame-label {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #3a2a18;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25);
 }
 
 .now-playing {
