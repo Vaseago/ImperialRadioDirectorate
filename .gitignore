@@ -5,12 +5,12 @@ venv/
 data/
 data_desktop/
 
-# Audio files are large binaries, never committed - same reasoning as
-# the sibling apps' data/sde.sqlite.
+# The user's PERSONAL music library is large binaries, never committed -
+# same reasoning as the sibling apps' data/sde.sqlite. Commercials are
+# the opposite: real app content shipped to every install (once real ad
+# audio exists), so music_library_commercials/ is deliberately NOT
+# excluded here - see CLAUDE.md's "Stations, commercials, and static"
+# section.
 music_library/*
 !music_library/.gitkeep
 !music_library/README.md
-
-music_library_commercials/*
-!music_library_commercials/.gitkeep
-!music_library_commercials/README.md
