@@ -11,6 +11,7 @@ const barsWrap = document.getElementById("signal-bars");
 const signalLabelEl = document.getElementById("signal-label");
 const lockStateEl = document.getElementById("lock-state");
 const playStateEl = document.getElementById("play-state");
+const volumeSlider = document.getElementById("volume-slider");
 
 const cx = 150, cy = 150, r = 92;
 const ARC_MIN = -70, ARC_MAX = 70;
@@ -28,6 +29,20 @@ let currentIndex = 0;
 let playing = false;
 let lastTrackId = null;
 let playingAd = false;
+
+// Real tracks run ~30s - looping the same track for a full 1-1.5 minute
+// "airtime" before moving on reads much more like a real station than
+// advancing every 30s would. Randomized per track (not a fixed 60s) so
+// consecutive plays don't all feel identically timed. Commercials are
+// deliberately NOT looped - a real ad break is short and singular, not
+// repeated back-to-back. trackElapsedSeconds accumulates real elapsed
+// time across loops (via player.duration each time a loop completes,
+// not assumed/hardcoded), so this works correctly regardless of a
+// track's own real length.
+const TRACK_AIRTIME_MIN_SECONDS = 60;
+const TRACK_AIRTIME_MAX_SECONDS = 90;
+let trackAirtimeTargetSeconds = 0;
+let trackElapsedSeconds = 0;
 
 function polar(angleDeg, radius) {
   const a = (angleDeg - 90) * Math.PI / 180;
@@ -114,6 +129,10 @@ function playTrack(track, isAd) {
   nowPlayingEl.textContent = track.title;
   nowPlayingEl.classList.toggle("ad", isAd);
   nowPlayingEl.classList.remove("paused");
+  trackElapsedSeconds = 0;
+  trackAirtimeTargetSeconds = isAd
+    ? 0
+    : TRACK_AIRTIME_MIN_SECONDS + Math.random() * (TRACK_AIRTIME_MAX_SECONDS - TRACK_AIRTIME_MIN_SECONDS);
 }
 
 function playNext() {
@@ -257,7 +276,29 @@ document.getElementById("hub-hit").addEventListener("click", (evt) => {
 });
 
 player.addEventListener("ended", () => {
-  if (playing) playNext();
+  if (!playing) return;
+  if (!playingAd) {
+    trackElapsedSeconds += player.duration || 0;
+    if (trackElapsedSeconds < trackAirtimeTargetSeconds) {
+      player.currentTime = 0;
+      player.play();
+      return;
+    }
+  }
+  playNext();
+});
+
+// Volume - persisted per-browser (localStorage, not server-side - this
+// is a local listening preference, not app state) so it survives a
+// reload/restart instead of always resetting to the 70 default.
+const SAVED_VOLUME = localStorage.getItem("ird_volume");
+const initialVolume = SAVED_VOLUME !== null ? Number(SAVED_VOLUME) : 70;
+volumeSlider.value = String(initialVolume);
+player.volume = initialVolume / 100;
+volumeSlider.addEventListener("input", () => {
+  const v = Number(volumeSlider.value);
+  player.volume = v / 100;
+  localStorage.setItem("ird_volume", String(v));
 });
 
 document.getElementById("rescan-btn").addEventListener("click", async () => {

@@ -139,6 +139,42 @@ body {
 .play-state { transition: color 0.2s; }
 .play-state.playing { color: var(--pointer); text-shadow: 0 0 4px rgba(227,82,69,0.6); }
 
+.volume-row { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+.volume-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.volume-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--static);
+  outline: none;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 4px rgba(232,200,120,0.6);
+  cursor: pointer;
+}
+.volume-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border: none;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 4px rgba(232,200,120,0.6);
+  cursor: pointer;
+}
+
 /* ============ PAGE CHROME (not part of the "device") ============ */
 .status {
   font-size: 0.68rem;
