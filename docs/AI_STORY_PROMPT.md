@@ -116,6 +116,29 @@ threaded throughout (not just bookending it), scene-setting language a
 narrator would actually speak, no stage directions or camera-style
 prose.
 
+## Strip Markdown before pasting into a TTS tool
+
+**Confirmed 2026-08-25, real gotcha**: a TTS tool's text box does a
+straight literal read - it does not parse Markdown at all. A `.md`
+file's `#`/`##` headers, `*italic*` asterisks, and `---` rules will get
+read aloud as stray symbols or garbled, not interpreted as formatting.
+Always produce a plain-text `.txt` companion file with all Markdown
+stripped (headers de-hashed but kept as plain spoken lines, `---` rules
+removed entirely, `*emphasis*` asterisks stripped) before handing a
+story to a TTS tool - `the_reach_at_vharo_plaintext.txt` alongside
+`the_reach_at_vharo.md` is the reference example. The `.md` file stays
+the source of truth/reference copy; the `.txt` is what actually gets
+pasted into ElevenLabs.
+
+Most TTS tools also don't expose a "context" or "system prompt" field
+separate from the text box itself - voice/stability/style settings
+change delivery, not what the tool understands about the story. If you
+want delivery to shift across the story (more tension during a raid,
+calmer during a memorial scene), the practical approach is running
+each chapter through separately with different voice settings and
+stitching the audio afterward - the chapter breaks in these stories are
+already sized with that in mind.
+
 ## Voice/narration prompt (for a TTS tool - ElevenLabs, etc.)
 
 An authoritative, resonant male storyteller voice - formal, commanding,
