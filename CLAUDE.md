@@ -276,7 +276,22 @@ plaque or crown element - the wood border IS the branding surface now.
   decision already made (see that section) - shares
   `music_library_commercials/` with ad jingles, no new plumbing needed.
 - Real commercial audio content - the scheduling mechanism is live (see
-  above), `music_library_commercials/` just has nothing in it yet.
+  above); `music_library_commercials/` now holds 6 real voice-over
+  clips (moved 2026-08-25 from `music_library/`, where they'd been
+  sitting mixed in with real music since 2026-08-23 - they were picked
+  as regular station tracks ~55% of the time instead of going through
+  the real 25% ad-roll until this move).
+- **Old-time-radio drama stories - scoped 2026-08-25, not started.**
+  `docs/AI_STORY_PROMPT.md` - Amarr Imperial Radio drama serials
+  (Minmatar-aggression plots, in-universe pro-Amarr propaganda framing,
+  single-narrator storyteller voice), same external-AI-generation
+  pattern as `AI_MUSIC_PROMPT.md`. Written after the author asked about
+  pulling similar AI-narrated stories from YouTube - declined (real
+  copyright/ToS issue even for AI-written content, see that file's own
+  "Why not just download the YouTube ones" section) - this is the safe,
+  original-content alternative. Shares `music_library_commercials/`
+  with the ad jingle and any future news snippets above, no new
+  plumbing needed once real files exist.
 
 ## Verified live, 2026-08-21 (not just "compiles")
 
