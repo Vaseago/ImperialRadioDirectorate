@@ -196,3 +196,17 @@ body {
 }
 .rescan-btn:hover { color: var(--gold); border-color: rgba(232,200,120,0.5); }
 .rescan-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.rescan-btn.pending { color: var(--cyan); border-color: var(--cyan); }
+
+/* "Check for App Update" (added 2026-08-30, ported from the sibling
+   apps once IRD joined the Pi's always-on supervisor - see
+   web/routers/app_update.py's own docstring) - reuses .rescan-btn's
+   exact look rather than a second button style, matching this app's
+   own minimal-chrome convention (no separate header/nav bar to put a
+   distinct button style in). */
+.restart-banner {
+  font-size: 0.68rem;
+  color: var(--cyan);
+  margin: 0;
+}
+.restart-banner[hidden] { display: none; }

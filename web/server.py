@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 import config
 from library.scanner import scan_library_dirs
-from web.routers import library, pages
+from web.routers import app_update, library, pages
 
 # See web/routers/pages.py's matching comment - same __file__-relative-
 # breaks-once-frozen fix as the sibling apps.
@@ -53,6 +53,11 @@ async def lifespan(app: FastAPI):
     app.state.tracks = {t.id: t for t in tracks}
     commercials = scan_library_dirs(config.COMMERCIAL_DIRS)
     app.state.commercials = {t.id: t for t in commercials}
+    # "Check for App Update" (added 2026-08-30, ported from the sibling
+    # apps once IRD joined the Pi's always-on supervisor setup) -
+    # app.state.pending_app_update mirrors the sibling apps' own
+    # convention exactly (None = nothing pending / not checked yet).
+    app.state.pending_app_update = None
     yield
 
 
@@ -60,3 +65,4 @@ app = FastAPI(title="Imperial Radio Directorate (web)", lifespan=lifespan)
 app.mount("/static", _NoCacheStaticFiles(directory=os.path.join(_WEB_DIR, "static")), name="static")
 app.include_router(pages.router)
 app.include_router(library.router)
+app.include_router(app_update.router)

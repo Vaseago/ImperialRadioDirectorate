@@ -102,16 +102,26 @@ visuals and the audio.
   `MUSIC_LIBRARY_DIR` so it shows the identical library with zero
   duplication.
 
-## Distribution (confirmed with the user, 2026-08-21)
+## Distribution
 
-**Desktop app only for now** - the user's own words: "this will be a
-desktop app only no 'webapp' version, but leave the option open i just
-don't see hosting it on the pi and accessing it from a different device
-at this time." This needed zero special design - `web/server.py` binds
-`0.0.0.0` same as the siblings, so a browser-reachable web server exists
-"for free" the moment `ird_web_main.py` runs; the user just isn't
-building/running an NSSM service or a Pi install path for it. Don't add
-Pi/web-installer packaging work without the user asking first.
+**Desktop-only-for-now (2026-08-21) - SUPERSEDED 2026-08-30, now also Pi-
+hosted.** Originally: "this will be a desktop app only no 'webapp'
+version, but leave the option open i just don't see hosting it on the pi
+and accessing it from a different device at this time." That "leave the
+option open" is exactly what paid off: `web/server.py` already bound
+`0.0.0.0` same as the siblings, so a browser-reachable web server existed
+"for free" the moment `ird_web_main.py` ran - no redesign was needed to
+actually add Pi hosting once asked for directly ("the radio shall work
+on the pi now"). A real public repo (github.com/Vaseago/ImperialRadioDirectorate)
+was created and pushed the same day, `_supervisor/deploy/linux/install.sh`
+was updated to clone/run it as a 4th app alongside IID/ISD/ILD (zero
+`supervisor.py` changes needed - its own discovery was already fully
+generic), and it's now confirmed running on the real Pi (port 8060,
+`http://<pi-lan-ip>:8060/`) alongside the other three. Also gained
+`--remote-url` on the desktop shell (ported from the sibling apps'
+identical flag) so a desktop shortcut can wrap that Pi-hosted instance
+instead of always spawning a local `ird_web_main.py` - see
+`desktop_shell/app.py`'s own module docstring for the exact mechanics.
 
 ## Deliberately deferred (don't build without asking first)
 

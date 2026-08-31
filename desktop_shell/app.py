@@ -15,8 +15,18 @@ Confirmed with the user (2026-08-21): this app is desktop-only for now
 DEPLOYMENT choice, not an architecture one; this shell still spawns the
 same web/ FastAPI app any future web installer would use, so the door
 stays open with zero rework if that's ever wanted later.
+
+Update 2026-08-30: the Pi-hosted door mentioned above is now open - IRD
+was added to the Pi's supervisor install (see ../_supervisor's own
+CLAUDE.md-equivalent commit) alongside IID/ISD/ILD, running as an
+always-on service on port 8060. `--remote-url` (ported from the sibling
+apps' own desktop shells) lets this same native window wrap that
+already-running instance instead of always spawning a local
+ird_web_main.py, matching the "Imperial ___ Directorate (Pi)" desktop
+shortcut convention the other 3 apps already have.
 """
 
+import argparse
 import os
 import subprocess
 import sys
@@ -83,30 +93,48 @@ class DesktopWindow(QMainWindow):
 
 
 def main():
-    env = os.environ.copy()
-    env["IRD_WEB_PORT"] = str(PORT)
-    env["IRD_DATA_DIR"] = DATA_DIR
+    parser = argparse.ArgumentParser(description="Imperial Radio Directorate desktop shell")
+    parser.add_argument(
+        "--remote-url",
+        default=None,
+        help=(
+            "Point this window at an ALREADY-RUNNING instance (e.g. "
+            "http://192.168.1.50:8060/ for the Pi on your home LAN) instead of "
+            "spawning a local ird_web_main.py. No local process is "
+            "managed/closed in this mode - closing the window just closes "
+            "the window, the remote server keeps running."
+        ),
+    )
+    args = parser.parse_args()
 
-    if getattr(sys, "frozen", False):
-        # sys.executable is THIS packaged exe once frozen, not a Python
-        # interpreter - the web server is packaged as its own separate
-        # sibling exe (IRDWebApp.exe, built from ird_web_main.py)
-        # installed alongside this one.
-        exe_dir = os.path.dirname(sys.executable)
-        web_exe = os.path.join(exe_dir, "IRDWebApp.exe")
-        server_process = subprocess.Popen([web_exe], cwd=exe_dir, env=env)
+    if args.remote_url:
+        server_process = None
+        url = args.remote_url
     else:
-        server_process = subprocess.Popen(
-            [sys.executable, "ird_web_main.py"], cwd=REPO_ROOT, env=env
-        )
+        env = os.environ.copy()
+        env["IRD_WEB_PORT"] = str(PORT)
+        env["IRD_DATA_DIR"] = DATA_DIR
 
-    url = f"http://localhost:{PORT}/"
-    if not _wait_until_ready(url, READY_TIMEOUT_SECONDS):
-        server_process.terminate()
-        raise RuntimeError(
-            f"ird_web_main.py did not respond on {url} within "
-            f"{READY_TIMEOUT_SECONDS}s - check its console output for errors."
-        )
+        if getattr(sys, "frozen", False):
+            # sys.executable is THIS packaged exe once frozen, not a Python
+            # interpreter - the web server is packaged as its own separate
+            # sibling exe (IRDWebApp.exe, built from ird_web_main.py)
+            # installed alongside this one.
+            exe_dir = os.path.dirname(sys.executable)
+            web_exe = os.path.join(exe_dir, "IRDWebApp.exe")
+            server_process = subprocess.Popen([web_exe], cwd=exe_dir, env=env)
+        else:
+            server_process = subprocess.Popen(
+                [sys.executable, "ird_web_main.py"], cwd=REPO_ROOT, env=env
+            )
+
+        url = f"http://localhost:{PORT}/"
+        if not _wait_until_ready(url, READY_TIMEOUT_SECONDS):
+            server_process.terminate()
+            raise RuntimeError(
+                f"ird_web_main.py did not respond on {url} within "
+                f"{READY_TIMEOUT_SECONDS}s - check its console output for errors."
+            )
 
     app = QApplication(sys.argv)
     window = DesktopWindow(server_process, url)

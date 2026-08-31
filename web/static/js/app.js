@@ -1,5 +1,12 @@
+// Sent on every fetch() to a route that requires it server-side (see
+// web/security.py's require_same_origin_header) - ported from the
+// sibling apps' identical convention, header renamed X-IRD-Request.
+const SAME_ORIGIN_HEADERS = { "X-IRD-Request": "1" };
+
 const player = document.getElementById("player");
 const statusEl = document.getElementById("status");
+const restartBannerEl = document.getElementById("restart-banner");
+const appUpdateBtnEl = document.getElementById("app-update-btn");
 const nowPlayingEl = document.getElementById("now-playing");
 const dialSvg = document.getElementById("dial-svg");
 const ticksG = document.getElementById("ticks");
@@ -341,3 +348,105 @@ setInterval(() => { if (!barsWrap.classList.contains("locked")) randomizeStatic(
 
 setPlaying(false);
 loadLibrary();
+
+// ---------- Check for App Update (added 2026-08-30, ported from the
+// sibling apps once IRD joined the Pi's always-on supervisor - user's
+// own request: "lets get an update button on it that auto restarts the
+// app [server]") ----------
+
+let appUpdatePending = null;
+
+// Only ever starts right after a supervised pull, never as a permanent
+// background heartbeat.
+let restartPollTimer = null;
+
+function showRestartBanner() {
+  restartBannerEl.hidden = false;
+  if (!restartPollTimer) restartPollTimer = setInterval(pollForRestartRecovery, 1000);
+}
+
+function hideRestartBanner() {
+  restartBannerEl.hidden = true;
+  if (restartPollTimer) {
+    clearInterval(restartPollTimer);
+    restartPollTimer = null;
+  }
+}
+
+async function pollForRestartRecovery() {
+  try {
+    const res = await fetch("/api/app-update/status");
+    if (res.ok) hideRestartBanner();
+  } catch (e) {
+    // still down - keep polling
+  }
+}
+
+function applyAppUpdateStatus() {
+  if (appUpdatePending) {
+    appUpdateBtnEl.textContent = `Update Available (${appUpdatePending.commits_behind})`;
+    appUpdateBtnEl.classList.add("pending");
+  } else {
+    appUpdateBtnEl.textContent = "Check for App Update";
+    appUpdateBtnEl.classList.remove("pending");
+  }
+}
+
+async function loadAppUpdateStatus() {
+  const res = await fetch("/api/app-update/status");
+  const data = await res.json();
+  // A packaged build has no git checkout to pull against - hide the
+  // control entirely rather than showing a button that can only ever
+  // 404 (see web/routers/app_update.py's own _AVAILABLE gate).
+  if (data.available === false) {
+    appUpdateBtnEl.style.display = "none";
+    return;
+  }
+  appUpdatePending = data.pending;
+  applyAppUpdateStatus();
+}
+
+appUpdateBtnEl.addEventListener("click", async () => {
+  if (!appUpdatePending) {
+    appUpdateBtnEl.textContent = "Checking...";
+    const res = await fetch("/api/app-update/check", { method: "POST", headers: SAME_ORIGIN_HEADERS });
+    const data = await res.json();
+    appUpdatePending = data.pending;
+    applyAppUpdateStatus();
+    statusEl.textContent = appUpdatePending
+      ? `Update found (${appUpdatePending.commits_behind} commit(s) behind) - click "Check for App Update" again to pull it.`
+      : "Already up to date.";
+    if (!appUpdatePending) setTimeout(() => { statusEl.textContent = ""; }, 3000);
+    return;
+  }
+
+  // Plain native confirm() here, not a custom modal like the sibling
+  // apps (which avoid it specifically to hide the page's real origin/IP
+  // in a shared-device confirm dialog) - this app is a single-user
+  // personal device, and a whole modal system is disproportionate scope
+  // just for this one button.
+  const ok = confirm(
+    `${appUpdatePending.commits_behind} commit(s) behind:\n\n${appUpdatePending.log}\n\nPull now? You'll need to restart the server afterward.`
+  );
+  if (!ok) return;
+
+  appUpdateBtnEl.textContent = "Pulling...";
+  const res = await fetch("/api/app-update/pull", { method: "POST", headers: SAME_ORIGIN_HEADERS });
+  if (!res.ok) {
+    const err = await res.json();
+    statusEl.textContent = `Update failed: ${err.detail}`;
+    await loadAppUpdateStatus();
+    return;
+  }
+  const data = await res.json();
+  appUpdatePending = null;
+  applyAppUpdateStatus();
+  if (data.self_restarting) {
+    showRestartBanner();
+    statusEl.textContent = "Decree received - the Directorate is realigning its systems.";
+  } else {
+    statusEl.textContent = "Update pulled - restart the server for the change to take effect.";
+  }
+});
+
+loadAppUpdateStatus();
