@@ -27,6 +27,11 @@ isn't misled by a description of a design that no longer exists. The
 music-library architecture (AI-approximated "reconstructed audio,
 fragmentary records") still applies unchanged - see the next section.
 
+**Deferred/backlog ideas for this app live in `../TODO.md`'s "IRD"
+heading**, not here and not in Claude's own memory (see `../TODO.md`'s
+own intro) - check there for what's queued, and add new deferred ideas
+there rather than tracking a separate list.
+
 ## Legal grounding (read before touching the music library)
 
 This app **never extracts, scrapes, or derives audio from the installed
