@@ -15,6 +15,36 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+# True when this app is running on a Raspberry Pi. The device's name
+# label shows a small raspberry next to it so ANYONE running the
+# Pi-hosted app sees it - and, for the owner (who runs many desktop
+# test/dev windows of these apps side by side), so a real production
+# window is distinguishable from a test one at a glance.
+#
+# Two independent signals, either is enough:
+#   1. Real Pi hardware - /proc/device-tree/model reports "Raspberry Pi
+#      <n> Model ...". Canonical, present on every Raspberry Pi OS
+#      install regardless of how the app was launched; absent on every
+#      non-Pi machine (Windows, x86 Linux, generic ARM).
+#   2. IMPERIAL_APPS_ON_PI=1 in the environment - an explicit override
+#      the supervisor installer sets on the systemd unit, also usable
+#      for a containerised Pi deploy where /proc/device-tree isn't
+#      mounted, or to preview the badge locally.
+# Falsy everywhere else: desktop dev runs, the test launchers, the
+# Windows installer, the desktop shell.
+def _detect_raspberry_pi() -> bool:
+    if os.environ.get("IMPERIAL_APPS_ON_PI", "").strip().lower() in ("1", "true", "yes"):
+        return True
+    try:
+        with open("/proc/device-tree/model", "rb") as fh:
+            return b"raspberry pi" in fh.read().lower()
+    except OSError:
+        return False
+
+
+ON_RASPBERRY_PI = _detect_raspberry_pi()
+
 # DATA_DIR is where writable, per-machine local state lives - a much
 # smaller surface than the sibling apps' own DATA_DIR, since the only
 # thing that actually lives here is config_overrides.json (no ESI

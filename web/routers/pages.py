@@ -12,6 +12,8 @@ import sys
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 
+import config
+
 router = APIRouter()
 
 # __file__-relative resolution breaks once frozen (PyInstaller unpacks
@@ -28,4 +30,10 @@ templates = Jinja2Templates(directory=os.path.join(_WEB_DIR, "templates"))
 
 @router.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse(request, "index.html", {})
+    return templates.TemplateResponse(request, "index.html", {
+        # Small raspberry next to the device's name label when running on
+        # a Raspberry Pi (config._detect_raspberry_pi) - lets any Pi
+        # user, and the owner running many desktop test windows, tell a
+        # production window from a test one at a glance.
+        "on_raspberry_pi": config.ON_RASPBERRY_PI,
+    })

@@ -81,6 +81,19 @@ body {
   text-shadow: 0 1px 0 rgba(255,255,255,0.2);
 }
 
+/* Small raspberry after the device's name label whenever the app runs
+   on a Raspberry Pi - server-rendered, only present then (see
+   config.ON_RASPBERRY_PI / web/routers/pages.py). Same geometric
+   raspberry as the Pi desktop-shortcut icon badge
+   (web/static/icons/generate_pi_badge.py), tuned larger than 1em here
+   because .frame-label-bottom's own font is tiny (0.5rem). */
+.frame-label-bottom .pi-badge {
+  height: 1.6em;
+  width: auto;
+  vertical-align: -0.55em;
+  margin-left: 0.4em;
+}
+
 .now-playing {
   text-align: center;
   padding: 2px 4px 10px;
