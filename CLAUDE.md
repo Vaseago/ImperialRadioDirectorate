@@ -32,6 +32,13 @@ heading**, not here and not in Claude's own memory (see `../TODO.md`'s
 own intro) - check there for what's queued, and add new deferred ideas
 there rather than tracking a separate list.
 
+## Test environment, not production
+
+This gaming PC (the machine Claude Code runs on) is entirely a test
+environment for every Imperial app - process AND data. Only the
+Raspberry Pi is production. Canonical version, covering all apps:
+`../TEST_ENVIRONMENT.md`.
+
 ## Legal grounding (read before touching the music library)
 
 This app **never extracts, scrapes, or derives audio from the installed
